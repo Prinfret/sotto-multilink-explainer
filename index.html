@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multilink H_B — How It Works</title>
+<title>Multilink H_B â How It Works</title>
 <style>
   :root {
     --bg: #0A0E1A;
@@ -60,7 +60,7 @@
   .stat.amber .val { color: var(--amber); }
   .stat.coral .val { color: var(--coral); }
 
-  /* SVG diagrams — responsive */
+  /* SVG diagrams â responsive */
   .diagram { background: var(--bg); border-radius: 12px; padding: 0.5rem; text-align: center; overflow-x: auto; }
   .diagram svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
   svg text { font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -119,16 +119,70 @@
 
   /* Footer */
   .footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--bg3); margin-top: 3rem; color: var(--mute); font-size: 0.82rem; }
+
+  /* Password Gate */
+  #gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #gate.hidden { display: none; }
+  #gate .gate-box {
+    background: var(--bg2); border: 1px solid var(--bg3);
+    border-radius: 16px; padding: 2.5rem 2rem; text-align: center;
+    max-width: 380px; width: 90%;
+  }
+  #gate .gate-box h2 { color: #fff; font-size: 1.4rem; margin-bottom: 0.3rem; }
+  #gate .gate-box p { color: var(--mute); font-size: 0.88rem; margin-bottom: 1.4rem; }
+  #gate input {
+    width: 100%; padding: 0.65rem 1rem; border-radius: 8px;
+    border: 1px solid var(--bg3); background: var(--bg);
+    color: var(--text); font-size: 1rem; text-align: center;
+    outline: none; transition: border-color 0.2s;
+  }
+  #gate input:focus { border-color: var(--accent); }
+  #gate input.shake {
+    animation: shake 0.4s ease;
+    border-color: var(--coral);
+  }
+  #gate button {
+    margin-top: 1rem; padding: 0.6rem 2rem; border-radius: 8px;
+    background: var(--accent); color: var(--bg); border: none;
+    font-weight: 700; font-size: 0.95rem; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  #gate button:hover { opacity: 0.85; }
+  #gate .gate-badge { margin-top: 1.5rem; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
+  .content-hidden { display: none !important; }
 </style>
 </head>
 <body>
-<div class="container">
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <h2>Multilink H<sub>B</sub> Entropy</h2>
+    <p>This document is access-restricted.<br>Enter the password to continue.</p>
+    <input type="password" id="gatePass" placeholder="Password" autocomplete="off">
+    <br>
+    <button id="gateBtn">Enter</button>
+    <div class="gate-badge badge" style="margin-top:1.5rem;">SOTTO Platform &bull; BL1NQ</div>
+  </div>
+</div>
+
+<div class="container content-hidden" id="mainContent">
 
 <!-- HEADER -->
 <div class="header">
   <h1>Multilink <span>H<sub>B</sub></span> Entropy</h1>
-  <div class="sub">Bianconi Multilink Pattern Formalism — Patent Module 108</div>
-  <div class="badge">SOTTO Platform • BL1NQ</div>
+  <div class="sub">Bianconi Multilink Pattern Formalism â Patent Module 108</div>
+  <div class="badge">SOTTO Platform â¢ BL1NQ</div>
 </div>
 
 <!-- ============ STEP 1: THE MULTIPLEX GRAPH ============ -->
@@ -138,7 +192,7 @@
   <div class="step-sub">Device telemetry lives on M = 10 observation layers</div>
 
   <div class="card card-accent">
-    <p>A smartphone generates data across <strong>many independent sensor channels</strong> simultaneously. Each channel becomes a <em>layer</em> in a multiplex network — the same set of time-sample nodes, but with different edge structures per layer based on which signals are similar.</p>
+    <p>A smartphone generates data across <strong>many independent sensor channels</strong> simultaneously. Each channel becomes a <em>layer</em> in a multiplex network â the same set of time-sample nodes, but with different edge structures per layer based on which signals are similar.</p>
   </div>
 
   <div class="layer-ring" id="layerRing"></div>
@@ -148,7 +202,7 @@
   </div>
 
   <div class="note-box">
-    <strong>Key idea:</strong> Each layer captures a different <em>aspect</em> of the same device. WiFi sees connectivity patterns, Sensor sees physical motion, Battery sees power draw. The same two time-samples might be \"close\" on one layer but distant on another — this discrepancy <em>is</em> the entropy source.
+    <strong>Key idea:</strong> Each layer captures a different <em>aspect</em> of the same device. WiFi sees connectivity patterns, Sensor sees physical motion, Battery sees power draw. The same two time-samples might be "close" on one layer but distant on another â this discrepancy <em>is</em> the entropy source.
   </div>
 </div>
 
@@ -166,7 +220,7 @@
     </div>
     <div class="card card-purple">
       <h3 style="color:var(--accent2); margin-bottom:0.6rem;">Per-Layer Edge Counts</h3>
-      <p>With N = 500 sample nodes and k = 10, each layer produces roughly <strong>~1,400–1,600 edges</strong> (less than 5,000 because many k-NN connections are mutual).</p>
+      <p>With N = 500 sample nodes and k = 10, each layer produces roughly <strong>~1,400â1,600 edges</strong> (less than 5,000 because many k-NN connections are mutual).</p>
       <p style="margin-top:0.6rem;">The <strong>union of all edges</strong> across all 10 layers gives us the multiplex edge set: <span style="color:var(--accent); font-weight:700;">14,652 unique edges</span> total.</p>
       <div class="stat" style="margin-top:0.8rem;">
         <div class="val">14,652</div>
@@ -183,12 +237,12 @@
 <!-- ============ STEP 3: MULTILINK VECTORS ============ -->
 <div class="step">
   <div class="step-number">3</div>
-  <h2>Assign Multilink Vectors m⃗</h2>
+  <h2>Assign Multilink Vectors mâ</h2>
   <div class="step-sub">Each edge gets a binary fingerprint showing which layers it appears in</div>
 
   <div class="card card-accent">
-    <p>For every edge (i, j) in the union graph, we ask: <em>\"In which of the 10 layers does this edge exist?\"</em></p>
-    <p style="margin-top:0.6rem;">The answer is encoded as a <strong>binary vector m⃗ ∈ {0,1}<sup>10</sup></strong> where each bit corresponds to a layer. A <span class="bit-1">1</span> means the edge exists in that layer; a <span class="bit-0">0</span> means it doesn't.</p>
+    <p>For every edge (i, j) in the union graph, we ask: <em>"In which of the 10 layers does this edge exist?"</em></p>
+    <p style="margin-top:0.6rem;">The answer is encoded as a <strong>binary vector mâ â {0,1}<sup>10</sup></strong> where each bit corresponds to a layer. A <span class="bit-1">1</span> means the edge exists in that layer; a <span class="bit-0">0</span> means it doesn't.</p>
   </div>
 
   <div class="diagram" style="padding:1rem;">
@@ -199,7 +253,7 @@
     <div class="card" style="text-align:center;">
       <div class="stat">
         <div class="val">1,023</div>
-        <div class="label">Possible patterns (2¹⁰ − 1)</div>
+        <div class="label">Possible patterns (2Â¹â° â 1)</div>
       </div>
       <p style="font-size:0.82rem; color:var(--mute);">Excluding all-zeros (an edge must exist in at least one layer)</p>
     </div>
@@ -220,14 +274,14 @@
   </div>
 
   <div class="note-box">
-    <strong>Why this matters:</strong> If every edge appeared in all 10 layers, every m⃗ would be <span class="mono" style="color:var(--accent);">1111111111</span> — zero entropy. If every edge appeared in only one random layer, we'd have maximum entropy. The real device sits in between, with a <em>rich, complex distribution</em> of patterns that reflects genuine physical behavior.
+    <strong>Why this matters:</strong> If every edge appeared in all 10 layers, every mâ would be <span class="mono" style="color:var(--accent);">1111111111</span> â zero entropy. If every edge appeared in only one random layer, we'd have maximum entropy. The real device sits in between, with a <em>rich, complex distribution</em> of patterns that reflects genuine physical behavior.
   </div>
 </div>
 
 <!-- ============ STEP 4: PATTERN DISTRIBUTION ============ -->
 <div class="step">
   <div class="step-number">4</div>
-  <h2>The Pattern Distribution p(m⃗)</h2>
+  <h2>The Pattern Distribution p(mâ)</h2>
   <div class="step-sub">Count how often each multilink pattern occurs across all 14,652 edges</div>
 
   <div class="controls" id="chartControls"></div>
@@ -241,7 +295,7 @@
     <div class="card card-accent">
       <h3 style="color:var(--accent); margin-bottom:0.5rem;">Most Common Patterns</h3>
       <table class="pattern-table">
-        <thead><tr><th>Pattern m⃗</th><th>Active Layers</th><th>Count</th><th>%</th></tr></thead>
+        <thead><tr><th>Pattern mâ</th><th>Active Layers</th><th>Count</th><th>%</th></tr></thead>
         <tbody id="topPatterns"></tbody>
       </table>
     </div>
@@ -256,11 +310,11 @@
 <!-- ============ STEP 5: COMPUTE H_B ============ -->
 <div class="step">
   <div class="step-number">5</div>
-  <h2>Compute H<sub>B</sub> — Bianconi Multilink Entropy</h2>
+  <h2>Compute H<sub>B</sub> â Bianconi Multilink Entropy</h2>
   <div class="step-sub">Shannon entropy over the pattern distribution</div>
 
   <div class="formula">
-    <div>H<sub>B</sub> = −∑<sub style="font-size:0.7em;">m⃗</sub> p(m⃗) · log<sub>2</sub>( p(m⃗) )</div>
+    <div>H<sub>B</sub> = ââ<sub style="font-size:0.7em;">mâ</sub> p(mâ) Â· log<sub>2</sub>( p(mâ) )</div>
     <div class="note">Sum over all 666 observed multilink patterns, weighted by their empirical probability</div>
   </div>
 
@@ -274,13 +328,13 @@
     <div class="card" style="text-align:center;">
       <div class="stat purple">
         <div class="val">9.999</div>
-        <div class="label">H_max = log₂(2¹⁰ − 1)</div>
+        <div class="label">H_max = logâ(2Â¹â° â 1)</div>
       </div>
     </div>
     <div class="card" style="text-align:center;">
       <div class="stat amber">
         <div class="val">59.1%</div>
-        <div class="label">η = H_B / H_max (efficiency)</div>
+        <div class="label">Î· = H_B / H_max (efficiency)</div>
       </div>
     </div>
   </div>
@@ -289,17 +343,17 @@
     <h3 style="color:var(--accent); margin-bottom:0.6rem;">What Does 59.1% Efficiency Mean?</h3>
     <div class="grid-2" style="gap:1rem;">
       <div>
-        <p><strong style="color:#fff;">If η = 0%</strong> — All edges have the same pattern. The device is completely deterministic. Zero randomness.</p>
-        <p style="margin-top:0.5rem;"><strong style="color:#fff;">If η = 100%</strong> — Every possible pattern is equally likely. Maximum theoretical randomness (unrealistic for a real device).</p>
+        <p><strong style="color:#fff;">If Î· = 0%</strong> â All edges have the same pattern. The device is completely deterministic. Zero randomness.</p>
+        <p style="margin-top:0.5rem;"><strong style="color:#fff;">If Î· = 100%</strong> â Every possible pattern is equally likely. Maximum theoretical randomness (unrealistic for a real device).</p>
       </div>
       <div>
-        <p><strong style="color:#fff;">At η = 59.1%</strong> — The device exhibits strong combinatorial diversity. The multilink patterns are far from uniform <em>but also far from degenerate</em>. This is exactly what we'd expect from genuine physical randomness shaped by real-world constraints.</p>
+        <p><strong style="color:#fff;">At Î· = 59.1%</strong> â The device exhibits strong combinatorial diversity. The multilink patterns are far from uniform <em>but also far from degenerate</em>. This is exactly what we'd expect from genuine physical randomness shaped by real-world constraints.</p>
       </div>
     </div>
   </div>
 
   <div class="note-box">
-    <strong>Conservative estimate:</strong> For cryptographic security, we use <strong>min-entropy</strong> H<sub>min</sub> = −log₂(max p(m⃗)) = <span style="color:var(--coral); font-weight:700;">3.078 bits/edge</span> — the worst-case entropy assuming an attacker always guesses the most likely pattern. This feeds into the NIST calculation.
+    <strong>Conservative estimate:</strong> For cryptographic security, we use <strong>min-entropy</strong> H<sub>min</sub> = âlogâ(max p(mâ)) = <span style="color:var(--coral); font-weight:700;">3.078 bits/edge</span> â the worst-case entropy assuming an attacker always guesses the most likely pattern. This feeds into the NIST calculation.
   </div>
 </div>
 
@@ -307,10 +361,10 @@
 <div class="step">
   <div class="step-number">6</div>
   <h2>Scale to Total Entropy</h2>
-  <div class="step-sub">14,652 edges × min-entropy per edge → total security budget</div>
+  <div class="step-sub">14,652 edges Ã min-entropy per edge â total security budget</div>
 
   <div class="formula">
-    <div>H<sub>min,total</sub> = 14,652 edges × 3.078 bits/edge = <span class="highlight">45,100 bits</span></div>
+    <div>H<sub>min,total</sub> = 14,652 edges Ã 3.078 bits/edge = <span class="highlight">45,100 bits</span></div>
     <div class="note">Raw min-entropy before conditioner</div>
   </div>
 
@@ -319,45 +373,45 @@
       <div class="name" style="color:var(--accent);">DMG</div>
       <div class="detail">Device Multiplex<br>Graph</div>
     </div>
-    <div class="pipe-arrow">→</div>
+    <div class="pipe-arrow">â</div>
     <div class="pipe-stage active">
       <div class="name" style="color:var(--accent);">H<sub>B</sub></div>
       <div class="detail">Module 108<br>45,100 bits</div>
     </div>
-    <div class="pipe-arrow">→</div>
+    <div class="pipe-arrow">â</div>
     <div class="pipe-stage" style="border-color:var(--accent2);">
       <div class="name" style="color:var(--accent2);">BLAKE2b</div>
-      <div class="detail">Cryptographic hash<br>2⁻²⁵⁶ collision</div>
+      <div class="detail">Cryptographic hash<br>2â»Â²âµâ¶ collision</div>
     </div>
-    <div class="pipe-arrow">→</div>
+    <div class="pipe-arrow">â</div>
     <div class="pipe-stage" style="border-color:var(--amber);">
       <div class="name" style="color:var(--amber);">Conditioner</div>
-      <div class="detail">Vetted ÷ 2<br>22,550 bits</div>
+      <div class="detail">Vetted Ã· 2<br>22,550 bits</div>
     </div>
-    <div class="pipe-arrow">→</div>
+    <div class="pipe-arrow">â</div>
     <div class="pipe-stage" style="border-color:var(--coral);">
       <div class="name" style="color:var(--coral);">Argon2id</div>
       <div class="detail">Memory-hard KDF<br>GPU/ASIC resistant</div>
     </div>
-    <div class="pipe-arrow">→</div>
+    <div class="pipe-arrow">â</div>
     <div class="pipe-stage" style="border-color:var(--gold);">
       <div class="name" style="color:var(--gold);">256-bit Key</div>
-      <div class="detail">Final output<br>176× NIST</div>
+      <div class="detail">Final output<br>176Ã NIST</div>
     </div>
   </div>
 
   <div class="grid-2">
     <div class="card card-accent">
-      <h3 style="color:var(--accent); margin-bottom:0.5rem;">Why ÷ 2 ?</h3>
-      <p>NIST SP 800-90B §3.1.5.1.2 requires that <em>vetted conditioners</em> (like BLAKE2b) can claim at most <strong>half the input entropy</strong> as output. This is a deliberate conservative margin.</p>
-      <p style="margin-top:0.5rem;">45,100 ÷ 2 = <strong>22,550 conditioned bits</strong> — still 176× the 128-bit NIST threshold.</p>
+      <h3 style="color:var(--accent); margin-bottom:0.5rem;">Why Ã· 2 ?</h3>
+      <p>NIST SP 800-90B Â§3.1.5.1.2 requires that <em>vetted conditioners</em> (like BLAKE2b) can claim at most <strong>half the input entropy</strong> as output. This is a deliberate conservative margin.</p>
+      <p style="margin-top:0.5rem;">45,100 Ã· 2 = <strong>22,550 conditioned bits</strong> â still 176Ã the 128-bit NIST threshold.</p>
     </div>
     <div class="card card-coral">
       <h3 style="color:var(--coral); margin-bottom:0.5rem;">Security Margin</h3>
       <div class="grid-3" style="gap:0.5rem; margin-top:0.5rem;">
-        <div class="stat"><div class="val" style="font-size:1.5rem;">176×</div><div class="label">NIST threshold</div></div>
-        <div class="stat coral"><div class="val" style="font-size:1.5rem;">88×</div><div class="label">AES-256 bitlength</div></div>
-        <div class="stat amber"><div class="val" style="font-size:1.5rem;">88×</div><div class="label">Post-quantum<br>(Grover)</div></div>
+        <div class="stat"><div class="val" style="font-size:1.5rem;">176Ã</div><div class="label">NIST threshold</div></div>
+        <div class="stat coral"><div class="val" style="font-size:1.5rem;">88Ã</div><div class="label">AES-256 bitlength</div></div>
+        <div class="stat amber"><div class="val" style="font-size:1.5rem;">88Ã</div><div class="label">Post-quantum<br>(Grover)</div></div>
       </div>
     </div>
   </div>
@@ -377,30 +431,77 @@
         <div class="val" style="color:var(--mute); font-size:1.5rem;">104.5 bits</div>
         <div class="label">Dynamic entropy (conditioned)</div>
       </div>
-      <p style="margin-top:0.5rem; font-size:0.85rem; color:var(--coral); font-weight:600;">✗ FAILS NIST at 0.82× threshold</p>
+      <p style="margin-top:0.5rem; font-size:0.85rem; color:var(--coral); font-weight:600;">â FAILS NIST at 0.82Ã threshold</p>
     </div>
     <div class="card" style="border:1px solid var(--accent);">
       <h3 style="color:var(--accent); margin-bottom:0.6rem;">Multilink H<sub>B</sub> (Graph)</h3>
-      <p>Measures entropy of <em>cross-layer correlation structure</em>. The randomness isn't in individual values — it's in the <strong>topology</strong> of how layers agree and disagree about node similarity.</p>
+      <p>Measures entropy of <em>cross-layer correlation structure</em>. The randomness isn't in individual values â it's in the <strong>topology</strong> of how layers agree and disagree about node similarity.</p>
       <div class="stat" style="margin-top:0.8rem;">
         <div class="val" style="font-size:1.5rem;">22,550 bits</div>
         <div class="label">Dynamic entropy (conditioned)</div>
       </div>
-      <p style="margin-top:0.5rem; font-size:0.85rem; color:var(--accent); font-weight:600;">✓ PASSES NIST at 176× threshold</p>
+      <p style="margin-top:0.5rem; font-size:0.85rem; color:var(--accent); font-weight:600;">â PASSES NIST at 176Ã threshold</p>
     </div>
   </div>
 
   <div class="note-box" style="margin-top:1.2rem;">
-    <strong>The 216× advantage:</strong> Multilink H<sub>B</sub> extracts <strong>216× more entropy</strong> from the same raw data. This isn't because the data has more randomness — it's because H<sub>B</sub> measures a <em>fundamentally richer structure</em>. The combinatorial explosion of 2<sup>10</sup> − 1 possible patterns across 14,652 edges creates an enormous entropy space that per-column approaches simply cannot access.
+    <strong>The 216Ã advantage:</strong> Multilink H<sub>B</sub> extracts <strong>216Ã more entropy</strong> from the same raw data. This isn't because the data has more randomness â it's because H<sub>B</sub> measures a <em>fundamentally richer structure</em>. The combinatorial explosion of 2<sup>10</sup> â 1 possible patterns across 14,652 edges creates an enormous entropy space that per-column approaches simply cannot access.
   </div>
 </div>
 
 <div class="footer">
-  SOTTO Platform — Bianconi Multilink Pattern Entropy (Patent Module 108)<br>
-  BL1NQ • Technical Reference • March 2026
+  SOTTO Platform â Bianconi Multilink Pattern Entropy (Patent Module 108)<br>
+  BL1NQ â¢ Technical Reference â¢ March 2026
 </div>
 
 </div><!-- /container -->
+
+<script>
+// ============ PASSWORD GATE ============
+(function() {
+  // SHA-256 hash of the password â change HASH and the user tells you the new password
+  // Current password: "sotto108"
+  var HASH = "41c40b87fc18e5028654c90bed95d38324ef511d21840aaff434ceac7bf0d53d";
+
+  async function sha256(str) {
+    var buf = new TextEncoder().encode(str);
+    var hashBuf = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(hashBuf)).map(function(b) {
+      return b.toString(16).padStart(2, "0");
+    }).join("");
+  }
+
+  var gate = document.getElementById("gate");
+  var passInput = document.getElementById("gatePass");
+  var mainContent = document.getElementById("mainContent");
+
+  // Check if already authenticated this session
+  if (sessionStorage.getItem("hb_auth") === "1") {
+    gate.classList.add("hidden");
+    mainContent.classList.remove("content-hidden");
+  }
+
+  async function tryUnlock() {
+    var val = passInput.value.trim();
+    if (!val) return;
+    var h = await sha256(val);
+    if (h === HASH) {
+      sessionStorage.setItem("hb_auth", "1");
+      gate.classList.add("hidden");
+      mainContent.classList.remove("content-hidden");
+    } else {
+      passInput.classList.add("shake");
+      passInput.value = "";
+      setTimeout(function() { passInput.classList.remove("shake"); }, 500);
+    }
+  }
+
+  document.getElementById("gateBtn").addEventListener("click", tryUnlock);
+  passInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") tryUnlock();
+  });
+})();
+</script>
 
 <script>
 // ============ DATA ============
@@ -421,7 +522,7 @@ const PATTERNS = {
   "0000000001": 1735, "0000000010": 1094, "1000000000": 1058,
   "0011111110": 803, "0000010000": 764, "1111111110": 764,
   "0111011110": 756, "0100000000": 730, "0001000000": 628,
-  "0000100000": 557, "0000001000": 440, "1111111111": 381,
+  "0000100000": 557, "0000001001": 440, "1111111111": 381,
   "0000000100": 236, "0010000000": 193, "1100000000": 125,
   "1000100000": 118, "0100000100": 115, "0100000001": 86,
   "0000100001": 84, "1111101101": 76, "0001000001": 68,
@@ -462,15 +563,18 @@ function svgEl(tag, attrs) {
     const c = LAYERS[l].color;
     const op = (0.12 + 0.065 * (layerCount - l)).toFixed(2);
 
+    // Layer plane (parallelogram)
     svg.appendChild(svgEl("polygon", {
       points: (cx-160)+","+y0+" "+(cx+160)+","+y0+" "+(cx+195)+","+(y0+18)+" "+(cx-125)+","+(y0+18),
       fill: c, "fill-opacity": op, stroke: c, "stroke-opacity": 0.25, "stroke-width": 0.5
     }));
 
+    // Label
     const txt = svgEl("text", { x: cx + 210, y: y0 + 13, fill: c, "font-size": 10, "font-weight": 600 });
     txt.textContent = LAYERS[l].name;
     svg.appendChild(txt);
 
+    // Nodes
     const positions = [];
     for (let n = 0; n < N; n++) {
       const angle = (n / N) * Math.PI * 0.8 + Math.PI * 0.1;
@@ -480,6 +584,7 @@ function svgEl(tag, attrs) {
       svg.appendChild(svgEl("circle", { cx: nx, cy: ny, r: 5, fill: c, "fill-opacity": 0.65 }));
     }
 
+    // Edges (deterministic pseudo-random per layer)
     const seed = l * 37 + 7;
     for (let e = 0; e < 5; e++) {
       const a = (seed + e * 3) % N, b = (seed + e * 5 + 1) % N;
@@ -491,6 +596,7 @@ function svgEl(tag, attrs) {
     }
   }
 
+  // Title text
   const t1 = svgEl("text", { x: 25, y: 28, fill: "#E8ECF4", "font-size": 13, "font-weight": 600 });
   t1.textContent = "10-Layer Multiplex Graph";
   svg.appendChild(t1);
@@ -511,16 +617,19 @@ function svgEl(tag, attrs) {
 
   const configs = [
     { ox: 0, li: 0, label: "WiFi Layer", k: 3 },
-    { ox: 420, li: 6, label: "Sensor Layer", k: 3 },
+    { ox: 420, li: 6, label: "Sensor Layer", k: 3 }, // Index 6 = Sensor
   ];
 
   configs.forEach(cfg => {
+    // Background card
     svg.appendChild(svgEl("rect", { x: cfg.ox + 15, y: 15, width: 375, height: 250, rx: 8, fill: "#111628" }));
 
+    // Label
     const lbl = svgEl("text", { x: cfg.ox + 30, y: 40, fill: LAYERS[cfg.li].color, "font-size": 13, "font-weight": 700 });
     lbl.textContent = cfg.label;
     svg.appendChild(lbl);
 
+    // Edges (different topology per layer)
     const seed = cfg.li * 53 + 13;
     for (let i = 0; i < N; i++) {
       for (let j = 0; j < cfg.k; j++) {
@@ -534,6 +643,7 @@ function svgEl(tag, attrs) {
       }
     }
 
+    // Highlighted node 0 connections
     for (let j = 0; j < cfg.k; j++) {
       const nb = (0 + j + 1 + ((seed * 1) % 4)) % N;
       svg.appendChild(svgEl("line", {
@@ -543,6 +653,7 @@ function svgEl(tag, attrs) {
       }));
     }
 
+    // Nodes
     nodes.forEach((n, i) => {
       const isHL = i === 0;
       svg.appendChild(svgEl("circle", {
@@ -556,8 +667,9 @@ function svgEl(tag, attrs) {
     });
   });
 
+  // "Different!" label between
   const ne = svgEl("text", { x: 405, y: 140, fill: "#7B8CA8", "font-size": 14, "text-anchor": "middle", "font-weight": 700 });
-  ne.textContent = "≠";
+  ne.textContent = "â ";
   svg.appendChild(ne);
   const ne2 = svgEl("text", { x: 405, y: 158, fill: "#7B8CA8", "font-size": 9, "text-anchor": "middle" });
   ne2.textContent = "Different edges!";
@@ -568,22 +680,24 @@ function svgEl(tag, attrs) {
 (function() {
   const svg = document.getElementById("vectorSvg");
   const examples = [
-    { vec: "1011111110", edge: "(t₃, t₇)", note: "Present in 8/10 layers" },
-    { vec: "0000000001", edge: "(t₁, t₅)", note: "System layer only" },
-    { vec: "1000100000", edge: "(t₂, t₉)", note: "WiFi + Network" },
+    { vec: "1011111110", edge: "(tâ, tâ)", note: "Present in 8/10 layers" },
+    { vec: "0000000001", edge: "(tâ, tâ)", note: "System layer only" },
+    { vec: "1000100000", edge: "(tâ, tâ)", note: "WiFi + Network" },
   ];
 
   examples.forEach((ex, row) => {
     const y = 15 + row * 85;
 
+    // Edge label
     const edgeTxt = svgEl("text", { x: 10, y: y + 25, fill: "#E8ECF4", "font-size": 12, "font-weight": 600 });
     edgeTxt.textContent = "Edge " + ex.edge;
     svg.appendChild(edgeTxt);
 
     const vecLbl = svgEl("text", { x: 10, y: y + 45, fill: "#7B8CA8", "font-size": 9 });
-    vecLbl.textContent = "m⃗ =";
+    vecLbl.textContent = "mâ =";
     svg.appendChild(vecLbl);
 
+    // Bit boxes
     for (let b = 0; b < 10; b++) {
       const bx = 130 + b * 56;
       const isOne = ex.vec[b] === "1";
@@ -604,6 +718,7 @@ function svgEl(tag, attrs) {
       bitTxt.textContent = ex.vec[b];
       svg.appendChild(bitTxt);
 
+      // Layer headers (first row only)
       if (row === 0) {
         const hdr = svgEl("text", {
           x: bx + 24, y: y + 2, fill: LAYERS[b].color,
@@ -614,6 +729,7 @@ function svgEl(tag, attrs) {
       }
     }
 
+    // Note
     const noteTxt = svgEl("text", { x: 700, y: y + 38, fill: "#7B8CA8", "font-size": 9.5 });
     noteTxt.textContent = ex.note;
     svg.appendChild(noteTxt);
@@ -655,6 +771,7 @@ function renderBars(entries, colorFn) {
 
 function showChart(mode) {
   currentChart = mode;
+  // Update buttons
   document.querySelectorAll("#chartControls .btn").forEach(function(b) {
     b.classList.toggle("active", b.dataset.mode === mode);
   });
@@ -746,6 +863,6 @@ function showChart(mode) {
     container.appendChild(col);
   }
 })();
-<\/script>
+</script>
 </body>
 </html>
