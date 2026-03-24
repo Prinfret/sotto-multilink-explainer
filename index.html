@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multilink H_B — How It Works</title>
+<style>
+  :root {
+    --bg: #0A0E1A;
+    --bg2: #111628;
+    --bg3: #1A2040;
+    --accent: #00D4AA;
+    --accent2: #6C63FF;
+    --coral: #FF6B6B;
+    --amber: #FFB347;
+    --gold: #FFD700;
+    --text: #E8ECF4;
+    --mute: #7B8CA8;
+    --cyan: #22D3EE;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.6; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* Header */
+  .header { text-align: center; padding: 3rem 0 2rem; border-bottom: 1px solid var(--bg3); margin-bottom: 3rem; }
+  .header h1 { font-size: 2.6rem; color: #fff; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  .header h1 span { color: var(--accent); }
+  .header .sub { color: var(--mute); font-size: 1.05rem; }
+  .badge { display: inline-block; background: var(--bg3); border: 1px solid var(--accent); color: var(--accent); padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.8rem; margin-top: 0.75rem; letter-spacing: 0.03em; }
+
+  /* Step sections */
+  .step { margin-bottom: 3.5rem; position: relative; padding-left: 0.5rem; }
+  .step-number { position: absolute; left: -0.5rem; top: -0.3rem; width: 2.4rem; height: 2.4rem; background: var(--accent); color: var(--bg); font-weight: 800; font-size: 1.15rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .step h2 { font-size: 1.7rem; color: #fff; margin-bottom: 0.3rem; padding-left: 2.8rem; letter-spacing: -0.01em; }
+  .step .step-sub { color: var(--accent); font-size: 0.92rem; padding-left: 2.8rem; margin-bottom: 1.2rem; }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--bg3); border-radius: 12px; padding: 1.4rem; margin-bottom: 1.2rem; }
+  .card-accent { border-left: 3px solid var(--accent); }
+  .card-purple { border-left: 3px solid var(--accent2); }
+  .card-coral { border-left: 3px solid var(--coral); }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 800px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .header h1 { font-size: 2rem; }
+    .pipeline { flex-direction: column; align-items: stretch; }
+    .pipe-arrow { transform: rotate(90deg); text-align: center; padding: 0.3rem 0; }
+  }
+
+  /* Stat callouts */
+  .stat { text-align: center; padding: 1rem; }
+  .stat .val { font-size: 2rem; font-weight: 800; color: var(--accent); line-height: 1.2; }
+  .stat .label { color: var(--mute); font-size: 0.82rem; margin-top: 0.25rem; }
+  .stat.purple .val { color: var(--accent2); }
+  .stat.amber .val { color: var(--amber); }
+  .stat.coral .val { color: var(--coral); }
+
+  /* SVG diagrams — responsive */
+  .diagram { background: var(--bg); border-radius: 12px; padding: 0.5rem; text-align: center; overflow-x: auto; }
+  .diagram svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  svg text { font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  /* Pattern table */
+  .pattern-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .pattern-table th { background: var(--bg3); color: var(--accent); padding: 0.5rem 0.6rem; text-align: left; font-weight: 600; }
+  .pattern-table td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--bg3); vertical-align: middle; }
+  .pattern-table tr:hover td { background: rgba(0,212,170,0.05); }
+  .mono { font-family: 'Consolas', 'Courier New', monospace; }
+  .bit-1 { color: var(--accent); font-weight: 700; }
+  .bit-0 { color: #3A4565; }
+
+  /* Formula boxes */
+  .formula { background: var(--bg); border: 1px solid var(--bg3); border-radius: 10px; padding: 1.2rem 1.5rem; font-size: 1.25rem; text-align: center; color: #fff; margin: 1rem 0; }
+  .formula .highlight { color: var(--accent); font-weight: 700; }
+  .formula .note { font-size: 0.82rem; color: var(--mute); margin-top: 0.5rem; }
+
+  /* Pipeline flow */
+  .pipeline { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; padding: 1.2rem 0; }
+  .pipe-stage { background: var(--bg2); border: 1px solid var(--bg3); border-radius: 10px; padding: 0.7rem 1rem; text-align: center; min-width: 110px; }
+  .pipe-stage .name { font-weight: 700; font-size: 0.9rem; }
+  .pipe-stage .detail { font-size: 0.72rem; color: var(--mute); margin-top: 0.15rem; }
+  .pipe-arrow { color: var(--accent); font-size: 1.3rem; padding: 0 0.4rem; }
+  .pipe-stage.active { border-color: var(--accent); }
+  .pipe-stage.active .name { color: var(--accent); }
+
+  /* Bar chart */
+  .bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 200px; padding: 0.5rem 0; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+  .bar { border-radius: 3px 3px 0 0; width: 100%; transition: height 0.5s ease; }
+  .bar-label { font-size: 0.55rem; color: var(--mute); margin-top: 0.3rem; text-align: center; font-family: 'Consolas', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .bar-val { font-size: 0.6rem; color: var(--text); margin-bottom: 0.15rem; font-weight: 600; }
+
+  /* Layer circles */
+  .layer-ring { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; padding: 0.8rem 0 1.2rem; }
+  .layer-dot { display: flex; align-items: center; gap: 0.4rem; background: var(--bg3); padding: 0.35rem 0.75rem; border-radius: 99px; font-size: 0.82rem; }
+  .layer-dot .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Note box */
+  .note-box { background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.18); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; font-size: 0.88rem; }
+  .note-box strong { color: var(--accent); }
+
+  /* Interactive controls */
+  .controls { display: flex; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .btn { background: var(--bg3); border: 1px solid var(--bg3); color: var(--text); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+  /* Participation chart */
+  .participation-chart { display: flex; align-items: flex-end; gap: 6px; height: 130px; }
+  .part-col { flex: 1; display: flex; flex-direction: column; align-items: center; }
+  .part-bar { width: 100%; border-radius: 3px 3px 0 0; }
+  .part-val { font-size: 0.65rem; color: var(--text); margin-bottom: 0.2rem; font-weight: 600; }
+  .part-label { font-size: 0.7rem; color: var(--mute); margin-top: 0.25rem; }
+
+  /* Footer */
+  .footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--bg3); margin-top: 3rem; color: var(--mute); font-size: 0.82rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Multilink <span>H<sub>B</sub></span> Entropy</h1>
+  <div class="sub">Bianconi Multilink Pattern Formalism — Patent Module 108</div>
+  <div class="badge">SOTTO Platform • BL1NQ</div>
+</div>
+
+<!-- ============ STEP 1: THE MULTIPLEX GRAPH ============ -->
+<div class="step">
+  <div class="step-number">1</div>
+  <h2>Build the Multiplex Graph</h2>
+  <div class="step-sub">Device telemetry lives on M = 10 observation layers</div>
+
+  <div class="card card-accent">
+    <p>A smartphone generates data across <strong>many independent sensor channels</strong> simultaneously. Each channel becomes a <em>layer</em> in a multiplex network — the same set of time-sample nodes, but with different edge structures per layer based on which signals are similar.</p>
+  </div>
+
+  <div class="layer-ring" id="layerRing"></div>
+
+  <div class="diagram">
+    <svg id="multiplexSvg" viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="note-box">
+    <strong>Key idea:</strong> Each layer captures a different <em>aspect</em> of the same device. WiFi sees connectivity patterns, Sensor sees physical motion, Battery sees power draw. The same two time-samples might be \"close\" on one layer but distant on another — this discrepancy <em>is</em> the entropy source.
+  </div>
+</div>
+
+<!-- ============ STEP 2: k-NN EDGES ============ -->
+<div class="step">
+  <div class="step-number">2</div>
+  <h2>Build k-NN Graphs Per Layer</h2>
+  <div class="step-sub">Connect each sample to its k = 10 nearest neighbors within each layer</div>
+
+  <div class="grid-2">
+    <div class="card card-accent">
+      <h3 style="color:var(--accent); margin-bottom:0.6rem;">How k-NN Works</h3>
+      <p>For each of the M = 10 layers, we take the telemetry columns belonging to that layer and compute pairwise Euclidean distances between all N sampled time-points.</p>
+      <p style="margin-top:0.6rem;">Each node connects to its <strong>10 nearest neighbors</strong> in that layer's feature space. This creates a sparse graph that captures which time-samples have similar behavior <em>within that specific sensor domain</em>.</p>
+    </div>
+    <div class="card card-purple">
+      <h3 style="color:var(--accent2); margin-bottom:0.6rem;">Per-Layer Edge Counts</h3>
+      <p>With N = 500 sample nodes and k = 10, each layer produces roughly <strong>~1,400–1,600 edges</strong> (less than 5,000 because many k-NN connections are mutual).</p>
+      <p style="margin-top:0.6rem;">The <strong>union of all edges</strong> across all 10 layers gives us the multiplex edge set: <span style="color:var(--accent); font-weight:700;">14,652 unique edges</span> total.</p>
+      <div class="stat" style="margin-top:0.8rem;">
+        <div class="val">14,652</div>
+        <div class="label">Total unique edges across all layers</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <svg id="knnSvg" viewBox="0 0 820 280" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</div>
+
+<!-- ============ STEP 3: MULTILINK VECTORS ============ -->
+<div class="step">
+  <div class="step-number">3</div>
+  <h2>Assign Multilink Vectors m⃗</h2>
+  <div class="step-sub">Each edge gets a binary fingerprint showing which layers it appears in</div>
+
+  <div class="card card-accent">
+    <p>For every edge (i, j) in the union graph, we ask: <em>\"In which of the 10 layers does this edge exist?\"</em></p>
+    <p style="margin-top:0.6rem;">The answer is encoded as a <strong>binary vector m⃗ ∈ {0,1}<sup>10</sup></strong> where each bit corresponds to a layer. A <span class="bit-1">1</span> means the edge exists in that layer; a <span class="bit-0">0</span> means it doesn't.</p>
+  </div>
+
+  <div class="diagram" style="padding:1rem;">
+    <svg id="vectorSvg" viewBox="0 0 820 270" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="grid-3">
+    <div class="card" style="text-align:center;">
+      <div class="stat">
+        <div class="val">1,023</div>
+        <div class="label">Possible patterns (2¹⁰ − 1)</div>
+      </div>
+      <p style="font-size:0.82rem; color:var(--mute);">Excluding all-zeros (an edge must exist in at least one layer)</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="stat purple">
+        <div class="val">666</div>
+        <div class="label">Observed unique patterns</div>
+      </div>
+      <p style="font-size:0.82rem; color:var(--mute);">65.1% of the pattern space is populated</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="stat amber">
+        <div class="val">3.24</div>
+        <div class="label">Avg layers per edge</div>
+      </div>
+      <p style="font-size:0.82rem; color:var(--mute);">Edges typically span ~3 layers, showing moderate cross-layer coupling</p>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <strong>Why this matters:</strong> If every edge appeared in all 10 layers, every m⃗ would be <span class="mono" style="color:var(--accent);">1111111111</span> — zero entropy. If every edge appeared in only one random layer, we'd have maximum entropy. The real device sits in between, with a <em>rich, complex distribution</em> of patterns that reflects genuine physical behavior.
+  </div>
+</div>
+
+<!-- ============ STEP 4: PATTERN DISTRIBUTION ============ -->
+<div class="step">
+  <div class="step-number">4</div>
+  <h2>The Pattern Distribution p(m⃗)</h2>
+  <div class="step-sub">Count how often each multilink pattern occurs across all 14,652 edges</div>
+
+  <div class="controls" id="chartControls"></div>
+
+  <div class="card" id="chartContainer" style="min-height:260px; padding-bottom:2.5rem;">
+    <div class="bar-chart" id="patternBars"></div>
+    <div style="text-align:center; margin-top:0.5rem; font-size:0.75rem; color:var(--mute);" id="chartCaption">Top 30 multilink patterns by frequency</div>
+  </div>
+
+  <div class="grid-2" style="margin-top:1rem;">
+    <div class="card card-accent">
+      <h3 style="color:var(--accent); margin-bottom:0.5rem;">Most Common Patterns</h3>
+      <table class="pattern-table">
+        <thead><tr><th>Pattern m⃗</th><th>Active Layers</th><th>Count</th><th>%</th></tr></thead>
+        <tbody id="topPatterns"></tbody>
+      </table>
+    </div>
+    <div class="card card-purple">
+      <h3 style="color:var(--accent2); margin-bottom:0.5rem;">Participation Distribution</h3>
+      <p style="font-size:0.85rem; margin-bottom:0.6rem; color:var(--mute);">How many layers does a typical edge span?</p>
+      <div class="participation-chart" id="participationBars"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ STEP 5: COMPUTE H_B ============ -->
+<div class="step">
+  <div class="step-number">5</div>
+  <h2>Compute H<sub>B</sub> — Bianconi Multilink Entropy</h2>
+  <div class="step-sub">Shannon entropy over the pattern distribution</div>
+
+  <div class="formula">
+    <div>H<sub>B</sub> = −∑<sub style="font-size:0.7em;">m⃗</sub> p(m⃗) · log<sub>2</sub>( p(m⃗) )</div>
+    <div class="note">Sum over all 666 observed multilink patterns, weighted by their empirical probability</div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card" style="text-align:center;">
+      <div class="stat">
+        <div class="val">5.913</div>
+        <div class="label">H_B (bits per edge)</div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="stat purple">
+        <div class="val">9.999</div>
+        <div class="label">H_max = log₂(2¹⁰ − 1)</div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="stat amber">
+        <div class="val">59.1%</div>
+        <div class="label">η = H_B / H_max (efficiency)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-accent" style="margin-top:1rem;">
+    <h3 style="color:var(--accent); margin-bottom:0.6rem;">What Does 59.1% Efficiency Mean?</h3>
+    <div class="grid-2" style="gap:1rem;">
+      <div>
+        <p><strong style="color:#fff;">If η = 0%</strong> — All edges have the same pattern. The device is completely deterministic. Zero randomness.</p>
+        <p style="margin-top:0.5rem;"><strong style="color:#fff;">If η = 100%</strong> — Every possible pattern is equally likely. Maximum theoretical randomness (unrealistic for a real device).</p>
+      </div>
+      <div>
+        <p><strong style="color:#fff;">At η = 59.1%</strong> — The device exhibits strong combinatorial diversity. The multilink patterns are far from uniform <em>but also far from degenerate</em>. This is exactly what we'd expect from genuine physical randomness shaped by real-world constraints.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <strong>Conservative estimate:</strong> For cryptographic security, we use <strong>min-entropy</strong> H<sub>min</sub> = −log₂(max p(m⃗)) = <span style="color:var(--coral); font-weight:700;">3.078 bits/edge</span> — the worst-case entropy assuming an attacker always guesses the most likely pattern. This feeds into the NIST calculation.
+  </div>
+</div>
+
+<!-- ============ STEP 6: TOTAL ENTROPY ============ -->
+<div class="step">
+  <div class="step-number">6</div>
+  <h2>Scale to Total Entropy</h2>
+  <div class="step-sub">14,652 edges × min-entropy per edge → total security budget</div>
+
+  <div class="formula">
+    <div>H<sub>min,total</sub> = 14,652 edges × 3.078 bits/edge = <span class="highlight">45,100 bits</span></div>
+    <div class="note">Raw min-entropy before conditioner</div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipe-stage active">
+      <div class="name" style="color:var(--accent);">DMG</div>
+      <div class="detail">Device Multiplex<br>Graph</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-stage active">
+      <div class="name" style="color:var(--accent);">H<sub>B</sub></div>
+      <div class="detail">Module 108<br>45,100 bits</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-stage" style="border-color:var(--accent2);">
+      <div class="name" style="color:var(--accent2);">BLAKE2b</div>
+      <div class="detail">Cryptographic hash<br>2⁻²⁵⁶ collision</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-stage" style="border-color:var(--amber);">
+      <div class="name" style="color:var(--amber);">Conditioner</div>
+      <div class="detail">Vetted ÷ 2<br>22,550 bits</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-stage" style="border-color:var(--coral);">
+      <div class="name" style="color:var(--coral);">Argon2id</div>
+      <div class="detail">Memory-hard KDF<br>GPU/ASIC resistant</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-stage" style="border-color:var(--gold);">
+      <div class="name" style="color:var(--gold);">256-bit Key</div>
+      <div class="detail">Final output<br>176× NIST</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card card-accent">
+      <h3 style="color:var(--accent); margin-bottom:0.5rem;">Why ÷ 2 ?</h3>
+      <p>NIST SP 800-90B §3.1.5.1.2 requires that <em>vetted conditioners</em> (like BLAKE2b) can claim at most <strong>half the input entropy</strong> as output. This is a deliberate conservative margin.</p>
+      <p style="margin-top:0.5rem;">45,100 ÷ 2 = <strong>22,550 conditioned bits</strong> — still 176× the 128-bit NIST threshold.</p>
+    </div>
+    <div class="card card-coral">
+      <h3 style="color:var(--coral); margin-bottom:0.5rem;">Security Margin</h3>
+      <div class="grid-3" style="gap:0.5rem; margin-top:0.5rem;">
+        <div class="stat"><div class="val" style="font-size:1.5rem;">176×</div><div class="label">NIST threshold</div></div>
+        <div class="stat coral"><div class="val" style="font-size:1.5rem;">88×</div><div class="label">AES-256 bitlength</div></div>
+        <div class="stat amber"><div class="val" style="font-size:1.5rem;">88×</div><div class="label">Post-quantum<br>(Grover)</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ STEP 7: WHY IT WORKS ============ -->
+<div class="step">
+  <div class="step-number">7</div>
+  <h2>Why Multilink Entropy Is Uniquely Powerful</h2>
+  <div class="step-sub">Compared to traditional per-column RNG approaches</div>
+
+  <div class="grid-2">
+    <div class="card" style="border:1px solid var(--mute);">
+      <h3 style="color:var(--mute); margin-bottom:0.6rem;">Traditional RNG (Per-Column)</h3>
+      <p>Measures entropy <em>within individual columns</em>, then sums. Must discount for inter-column dependencies (MI). Treats each sensor as an independent source.</p>
+      <div class="stat" style="margin-top:0.8rem;">
+        <div class="val" style="color:var(--mute); font-size:1.5rem;">104.5 bits</div>
+        <div class="label">Dynamic entropy (conditioned)</div>
+      </div>
+      <p style="margin-top:0.5rem; font-size:0.85rem; color:var(--coral); font-weight:600;">✗ FAILS NIST at 0.82× threshold</p>
+    </div>
+    <div class="card" style="border:1px solid var(--accent);">
+      <h3 style="color:var(--accent); margin-bottom:0.6rem;">Multilink H<sub>B</sub> (Graph)</h3>
+      <p>Measures entropy of <em>cross-layer correlation structure</em>. The randomness isn't in individual values — it's in the <strong>topology</strong> of how layers agree and disagree about node similarity.</p>
+      <div class="stat" style="margin-top:0.8rem;">
+        <div class="val" style="font-size:1.5rem;">22,550 bits</div>
+        <div class="label">Dynamic entropy (conditioned)</div>
+      </div>
+      <p style="margin-top:0.5rem; font-size:0.85rem; color:var(--accent); font-weight:600;">✓ PASSES NIST at 176× threshold</p>
+    </div>
+  </div>
+
+  <div class="note-box" style="margin-top:1.2rem;">
+    <strong>The 216× advantage:</strong> Multilink H<sub>B</sub> extracts <strong>216× more entropy</strong> from the same raw data. This isn't because the data has more randomness — it's because H<sub>B</sub> measures a <em>fundamentally richer structure</em>. The combinatorial explosion of 2<sup>10</sup> − 1 possible patterns across 14,652 edges creates an enormous entropy space that per-column approaches simply cannot access.
+  </div>
+</div>
+
+<div class="footer">
+  SOTTO Platform — Bianconi Multilink Pattern Entropy (Patent Module 108)<br>
+  BL1NQ • Technical Reference • March 2026
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ============ DATA ============
+const LAYERS = [
+  { name: "WiFi", color: "#00D4AA", cols: 13 },
+  { name: "Bluetooth", color: "#6C63FF", cols: 13 },
+  { name: "Location", color: "#22D3EE", cols: 12 },
+  { name: "Cellular", color: "#FF6B6B", cols: 4 },
+  { name: "Network", color: "#FFB347", cols: 10 },
+  { name: "Battery", color: "#FFD700", cols: 8 },
+  { name: "Sensor", color: "#FF85A2", cols: 13 },
+  { name: "Memory", color: "#A78BFA", cols: 8 },
+  { name: "App", color: "#34D399", cols: 8 },
+  { name: "System", color: "#F97316", cols: 10 }
+];
+
+const PATTERNS = {
+  "0000000001": 1735, "0000000010": 1094, "1000000000": 1058,
+  "0011111110": 803, "0000010000": 764, "1111111110": 764,
+  "0111011110": 756, "0100000000": 730, "0001000000": 628,
+  "0000100000": 557, "0000001000": 440, "1111111111": 381,
+  "0000000100": 236, "0010000000": 193, "1100000000": 125,
+  "1000100000": 118, "0100000100": 115, "0100000001": 86,
+  "0000100001": 84, "1111101101": 76, "0001000001": 68,
+  "1000000001": 66, "1100000100": 60, "0000010010": 60,
+  "1111100101": 58, "0000100010": 36, "0111111110": 36,
+  "0010001000": 36, "1011111110": 41, "1111101111": 40,
+};
+
+const PARTICIPATION = [0, 7435, 1564, 798, 544, 387, 351, 1907, 387, 898, 381];
+const totalEdges = 14652;
+const sortedPatterns = Object.entries(PATTERNS).sort((a, b) => b[1] - a[1]);
+
+// ============ LAYER RING ============
+(function() {
+  const ring = document.getElementById("layerRing");
+  LAYERS.forEach(l => {
+    const el = document.createElement("div");
+    el.className = "layer-dot";
+    el.innerHTML = '<div class="dot" style="background:' + l.color + '"></div>' + l.name + ' <span style="color:var(--mute);font-size:0.72rem;">(' + l.cols + ' cols)</span>';
+    ring.appendChild(el);
+  });
+})();
+
+// ============ SVG HELPER ============
+function svgEl(tag, attrs) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+  return el;
+}
+
+// ============ MULTIPLEX DIAGRAM ============
+(function() {
+  const svg = document.getElementById("multiplexSvg");
+  const N = 8, layerCount = 10, spacing = 32, startY = 45, cx = 400;
+
+  for (let l = layerCount - 1; l >= 0; l--) {
+    const y0 = startY + l * spacing;
+    const c = LAYERS[l].color;
+    const op = (0.12 + 0.065 * (layerCount - l)).toFixed(2);
+
+    svg.appendChild(svgEl("polygon", {
+      points: (cx-160)+","+y0+" "+(cx+160)+","+y0+" "+(cx+195)+","+(y0+18)+" "+(cx-125)+","+(y0+18),
+      fill: c, "fill-opacity": op, stroke: c, "stroke-opacity": 0.25, "stroke-width": 0.5
+    }));
+
+    const txt = svgEl("text", { x: cx + 210, y: y0 + 13, fill: c, "font-size": 10, "font-weight": 600 });
+    txt.textContent = LAYERS[l].name;
+    svg.appendChild(txt);
+
+    const positions = [];
+    for (let n = 0; n < N; n++) {
+      const angle = (n / N) * Math.PI * 0.8 + Math.PI * 0.1;
+      const nx = cx + 130 * Math.cos(angle) - 15;
+      const ny = y0 + 9 + 7 * Math.sin(angle);
+      positions.push({ x: nx, y: ny });
+      svg.appendChild(svgEl("circle", { cx: nx, cy: ny, r: 5, fill: c, "fill-opacity": 0.65 }));
+    }
+
+    const seed = l * 37 + 7;
+    for (let e = 0; e < 5; e++) {
+      const a = (seed + e * 3) % N, b = (seed + e * 5 + 1) % N;
+      if (a === b) continue;
+      svg.appendChild(svgEl("line", {
+        x1: positions[a].x, y1: positions[a].y, x2: positions[b].x, y2: positions[b].y,
+        stroke: c, "stroke-opacity": 0.3, "stroke-width": 1
+      }));
+    }
+  }
+
+  const t1 = svgEl("text", { x: 25, y: 28, fill: "#E8ECF4", "font-size": 13, "font-weight": 600 });
+  t1.textContent = "10-Layer Multiplex Graph";
+  svg.appendChild(t1);
+  const t2 = svgEl("text", { x: 25, y: 43, fill: "#7B8CA8", "font-size": 10 });
+  t2.textContent = "Same nodes, different edges per layer";
+  svg.appendChild(t2);
+})();
+
+// ============ k-NN DIAGRAM ============
+(function() {
+  const svg = document.getElementById("knnSvg");
+  const N = 10;
+  const nodes = [];
+  for (let i = 0; i < N; i++) {
+    const angle = (i / N) * Math.PI * 2 - Math.PI/2;
+    nodes.push({ x: 175 + 95 * Math.cos(angle), y: 140 + 95 * Math.sin(angle) });
+  }
+
+  const configs = [
+    { ox: 0, li: 0, label: "WiFi Layer", k: 3 },
+    { ox: 420, li: 6, label: "Sensor Layer", k: 3 },
+  ];
+
+  configs.forEach(cfg => {
+    svg.appendChild(svgEl("rect", { x: cfg.ox + 15, y: 15, width: 375, height: 250, rx: 8, fill: "#111628" }));
+
+    const lbl = svgEl("text", { x: cfg.ox + 30, y: 40, fill: LAYERS[cfg.li].color, "font-size": 13, "font-weight": 700 });
+    lbl.textContent = cfg.label;
+    svg.appendChild(lbl);
+
+    const seed = cfg.li * 53 + 13;
+    for (let i = 0; i < N; i++) {
+      for (let j = 0; j < cfg.k; j++) {
+        const nb = (i + j + 1 + ((seed * (i + 1)) % 4)) % N;
+        if (nb === i) continue;
+        svg.appendChild(svgEl("line", {
+          x1: nodes[i].x + cfg.ox, y1: nodes[i].y,
+          x2: nodes[nb].x + cfg.ox, y2: nodes[nb].y,
+          stroke: LAYERS[cfg.li].color, "stroke-opacity": 0.25, "stroke-width": 1
+        }));
+      }
+    }
+
+    for (let j = 0; j < cfg.k; j++) {
+      const nb = (0 + j + 1 + ((seed * 1) % 4)) % N;
+      svg.appendChild(svgEl("line", {
+        x1: nodes[0].x + cfg.ox, y1: nodes[0].y,
+        x2: nodes[nb].x + cfg.ox, y2: nodes[nb].y,
+        stroke: LAYERS[cfg.li].color, "stroke-opacity": 0.85, "stroke-width": 2.5
+      }));
+    }
+
+    nodes.forEach((n, i) => {
+      const isHL = i === 0;
+      svg.appendChild(svgEl("circle", {
+        cx: n.x + cfg.ox, cy: n.y, r: isHL ? 7 : 4.5,
+        fill: isHL ? LAYERS[cfg.li].color : "#7B8CA8",
+        stroke: isHL ? "#fff" : "none", "stroke-width": isHL ? 2 : 0
+      }));
+      const lbl = svgEl("text", { x: n.x + cfg.ox, y: n.y - (isHL ? 12 : 9), fill: "#E8ECF4", "font-size": 8, "text-anchor": "middle" });
+      lbl.textContent = "t" + i;
+      svg.appendChild(lbl);
+    });
+  });
+
+  const ne = svgEl("text", { x: 405, y: 140, fill: "#7B8CA8", "font-size": 14, "text-anchor": "middle", "font-weight": 700 });
+  ne.textContent = "≠";
+  svg.appendChild(ne);
+  const ne2 = svgEl("text", { x: 405, y: 158, fill: "#7B8CA8", "font-size": 9, "text-anchor": "middle" });
+  ne2.textContent = "Different edges!";
+  svg.appendChild(ne2);
+})();
+
+// ============ VECTOR DIAGRAM ============
+(function() {
+  const svg = document.getElementById("vectorSvg");
+  const examples = [
+    { vec: "1011111110", edge: "(t₃, t₇)", note: "Present in 8/10 layers" },
+    { vec: "0000000001", edge: "(t₁, t₅)", note: "System layer only" },
+    { vec: "1000100000", edge: "(t₂, t₉)", note: "WiFi + Network" },
+  ];
+
+  examples.forEach((ex, row) => {
+    const y = 15 + row * 85;
+
+    const edgeTxt = svgEl("text", { x: 10, y: y + 25, fill: "#E8ECF4", "font-size": 12, "font-weight": 600 });
+    edgeTxt.textContent = "Edge " + ex.edge;
+    svg.appendChild(edgeTxt);
+
+    const vecLbl = svgEl("text", { x: 10, y: y + 45, fill: "#7B8CA8", "font-size": 9 });
+    vecLbl.textContent = "m⃗ =";
+    svg.appendChild(vecLbl);
+
+    for (let b = 0; b < 10; b++) {
+      const bx = 130 + b * 56;
+      const isOne = ex.vec[b] === "1";
+
+      svg.appendChild(svgEl("rect", {
+        x: bx, y: y + 8, width: 48, height: 46, rx: 5,
+        fill: isOne ? LAYERS[b].color : "#1A2040",
+        "fill-opacity": isOne ? 0.22 : 0.5,
+        stroke: isOne ? LAYERS[b].color : "#252D48",
+        "stroke-width": isOne ? 1.5 : 0.5
+      }));
+
+      const bitTxt = svgEl("text", {
+        x: bx + 24, y: y + 38, fill: isOne ? LAYERS[b].color : "#333D58",
+        "font-size": 16, "font-weight": isOne ? 800 : 400,
+        "text-anchor": "middle", "font-family": "'Consolas', monospace"
+      });
+      bitTxt.textContent = ex.vec[b];
+      svg.appendChild(bitTxt);
+
+      if (row === 0) {
+        const hdr = svgEl("text", {
+          x: bx + 24, y: y + 2, fill: LAYERS[b].color,
+          "font-size": 7.5, "text-anchor": "middle", "font-weight": 600
+        });
+        hdr.textContent = LAYERS[b].name;
+        svg.appendChild(hdr);
+      }
+    }
+
+    const noteTxt = svgEl("text", { x: 700, y: y + 38, fill: "#7B8CA8", "font-size": 9.5 });
+    noteTxt.textContent = ex.note;
+    svg.appendChild(noteTxt);
+  });
+})();
+
+// ============ PATTERN BAR CHARTS ============
+let currentChart = "top30";
+
+function renderBars(entries, colorFn) {
+  const container = document.getElementById("patternBars");
+  container.innerHTML = "";
+  const maxVal = Math.max(...entries.map(e => e[1]));
+  entries.forEach(function(entry) {
+    var label = entry[0], val = entry[1];
+    var col = document.createElement("div");
+    col.className = "bar-col";
+
+    var valEl = document.createElement("div");
+    valEl.className = "bar-val";
+    valEl.textContent = val;
+    col.appendChild(valEl);
+
+    var bar = document.createElement("div");
+    bar.className = "bar";
+    bar.style.height = Math.max(2, val / maxVal * 170) + "px";
+    bar.style.background = colorFn(label);
+    col.appendChild(bar);
+
+    var lbl = document.createElement("div");
+    lbl.className = "bar-label";
+    lbl.textContent = label;
+    lbl.title = label;
+    col.appendChild(lbl);
+
+    container.appendChild(col);
+  });
+}
+
+function showChart(mode) {
+  currentChart = mode;
+  document.querySelectorAll("#chartControls .btn").forEach(function(b) {
+    b.classList.toggle("active", b.dataset.mode === mode);
+  });
+
+  var caption = document.getElementById("chartCaption");
+  if (mode === "top30") {
+    var top30 = sortedPatterns.slice(0, 30);
+    renderBars(top30, function(label) {
+      var w = label.split("").filter(function(c) { return c === "1"; }).length;
+      return "hsl(" + (160 + w * 25) + ", 65%, " + (38 + w * 3) + "%)";
+    });
+    caption.textContent = "Top 30 multilink patterns by frequency";
+  } else {
+    var byWeight = {};
+    sortedPatterns.forEach(function(entry) {
+      var w = entry[0].split("").filter(function(c) { return c === "1"; }).length;
+      byWeight[w] = (byWeight[w] || 0) + entry[1];
+    });
+    var entries = Object.keys(byWeight).sort(function(a,b){ return +a - +b; }).map(function(w) {
+      return [w + " layers", byWeight[w]];
+    });
+    renderBars(entries, function(label) {
+      var idx = parseInt(label) - 1;
+      return LAYERS[idx % LAYERS.length].color;
+    });
+    caption.textContent = "Total edges grouped by number of active layers (Hamming weight)";
+  }
+}
+
+// Build chart buttons
+(function() {
+  var ctrls = document.getElementById("chartControls");
+  [["top30", "Top 30 Patterns"], ["byWeight", "By Hamming Weight"]].forEach(function(item) {
+    var btn = document.createElement("button");
+    btn.className = "btn" + (item[0] === "top30" ? " active" : "");
+    btn.textContent = item[1];
+    btn.dataset.mode = item[0];
+    btn.addEventListener("click", function() { showChart(item[0]); });
+    ctrls.appendChild(btn);
+  });
+  showChart("top30");
+})();
+
+// ============ TOP PATTERNS TABLE ============
+(function() {
+  var tbody = document.getElementById("topPatterns");
+  var names = LAYERS.map(function(l) { return l.name; });
+  sortedPatterns.slice(0, 8).forEach(function(entry) {
+    var pat = entry[0], count = entry[1];
+    var layers = pat.split("").map(function(b, i) { return b === "1" ? names[i] : null; }).filter(Boolean).join(", ");
+    var pct = (count / totalEdges * 100).toFixed(1);
+    var coloredPat = pat.split("").map(function(b, i) {
+      return '<span style="color:' + (b === "1" ? LAYERS[i].color : "#3A4565") + ';font-weight:' + (b === "1" ? 700 : 400) + '">' + b + '</span>';
+    }).join("");
+
+    var tr = document.createElement("tr");
+    tr.innerHTML = '<td class="mono">' + coloredPat + '</td><td style="font-size:0.75rem;color:var(--mute);">' + layers + '</td><td>' + count.toLocaleString() + '</td><td>' + pct + '%</td>';
+    tbody.appendChild(tr);
+  });
+})();
+
+// ============ PARTICIPATION BARS ============
+(function() {
+  var container = document.getElementById("participationBars");
+  var maxP = Math.max.apply(null, PARTICIPATION);
+
+  for (var i = 1; i <= 10; i++) {
+    var val = PARTICIPATION[i];
+    var col = document.createElement("div");
+    col.className = "part-col";
+
+    var valEl = document.createElement("div");
+    valEl.className = "part-val";
+    valEl.textContent = val.toLocaleString();
+    col.appendChild(valEl);
+
+    var bar = document.createElement("div");
+    bar.className = "part-bar";
+    bar.style.height = Math.max(2, val / maxP * 100) + "px";
+    bar.style.background = LAYERS[(i - 1) % LAYERS.length].color;
+    bar.style.opacity = "0.75";
+    col.appendChild(bar);
+
+    var lbl = document.createElement("div");
+    lbl.className = "part-label";
+    lbl.textContent = i;
+    col.appendChild(lbl);
+
+    container.appendChild(col);
+  }
+})();
+<\/script>
+</body>
+</html>
