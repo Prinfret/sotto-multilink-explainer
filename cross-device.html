@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Device Trust Bridging &mdash; SOTTO Platform</title>
+<style>
+  :root {
+    --bg: #0A0E1A;
+    --bg2: #111628;
+    --bg3: #1A2040;
+    --accent: #00D4AA;
+    --accent2: #6C63FF;
+    --coral: #FF6B6B;
+    --amber: #FFB347;
+    --gold: #FFD700;
+    --text: #E8ECF4;
+    --mute: #7B8CA8;
+    --cyan: #22D3EE;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.6; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* Header */
+  .header { text-align: center; padding: 3rem 0 2rem; border-bottom: 1px solid var(--bg3); margin-bottom: 3rem; }
+  .header h1 { font-size: 2.4rem; color: #fff; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  .header h1 span { color: var(--accent); }
+  .header .sub { color: var(--mute); font-size: 1.05rem; }
+  .badge { display: inline-block; background: var(--bg3); border: 1px solid var(--accent); color: var(--accent); padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.8rem; margin-top: 0.75rem; letter-spacing: 0.03em; }
+
+  /* Step sections */
+  .step { margin-bottom: 3.5rem; position: relative; padding-left: 0.5rem; }
+  .step-number { position: absolute; left: -0.5rem; top: -0.3rem; width: 2.4rem; height: 2.4rem; background: var(--accent); color: var(--bg); font-weight: 800; font-size: 1.15rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .step h2 { font-size: 1.7rem; color: #fff; margin-bottom: 0.3rem; padding-left: 2.8rem; letter-spacing: -0.01em; }
+  .step .step-sub { color: var(--accent); font-size: 0.92rem; padding-left: 2.8rem; margin-bottom: 1.2rem; }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--bg3); border-radius: 12px; padding: 1.4rem; margin-bottom: 1.2rem; }
+  .card-accent { border-left: 3px solid var(--accent); }
+  .card-purple { border-left: 3px solid var(--accent2); }
+  .card-coral { border-left: 3px solid var(--coral); }
+  .card-cyan { border-left: 3px solid var(--cyan); }
+  .card-amber { border-left: 3px solid var(--amber); }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 800px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.8rem; }
+    .bridge-diagram { flex-direction: column !important; }
+    .bridge-arrow { transform: rotate(90deg); }
+    .phase-timeline { flex-direction: column !important; }
+  }
+
+  /* Stat callouts */
+  .stat { text-align: center; padding: 1rem; }
+  .stat .val { font-size: 2rem; font-weight: 800; color: var(--accent); line-height: 1.2; }
+  .stat .label { color: var(--mute); font-size: 0.82rem; margin-top: 0.25rem; }
+  .stat.purple .val { color: var(--accent2); }
+  .stat.amber .val { color: var(--amber); }
+  .stat.coral .val { color: var(--coral); }
+  .stat.cyan .val { color: var(--cyan); }
+
+  /* Note box */
+  .note-box { background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.18); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; font-size: 0.88rem; }
+  .note-box strong { color: var(--accent); }
+  .note-box.warn { background: rgba(255,107,107,0.07); border-color: rgba(255,107,107,0.18); }
+  .note-box.warn strong { color: var(--coral); }
+  .note-box.info { background: rgba(108,99,255,0.07); border-color: rgba(108,99,255,0.18); }
+  .note-box.info strong { color: var(--accent2); }
+
+  /* SVG diagrams */
+  .diagram { background: var(--bg); border-radius: 12px; padding: 0.5rem; text-align: center; overflow-x: auto; }
+  .diagram svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  svg text { font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  /* Bridge diagram */
+  .bridge-diagram { display: flex; align-items: center; justify-content: center; gap: 0; padding: 1.5rem 0; }
+  .bridge-node { background: var(--bg2); border: 2px solid var(--bg3); border-radius: 16px; padding: 1.5rem; text-align: center; width: 260px; transition: border-color 0.5s; }
+  .bridge-node.mobile { border-color: var(--accent); }
+  .bridge-node.browser { border-color: var(--cyan); }
+  .bridge-node.correlation { border-color: var(--amber); background: rgba(255,179,71,0.08); width: 200px; }
+  .bridge-node h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .bridge-node .node-stats { font-size: 0.78rem; color: var(--mute); line-height: 1.7; }
+  .bridge-node .node-stats span { color: var(--text); font-weight: 600; }
+  .bridge-arrow { font-size: 2rem; color: var(--accent); padding: 0 0.6rem; animation: pulse-arrow 2s ease-in-out infinite; }
+  @keyframes pulse-arrow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  /* Flow steps */
+  .flow-steps { display: flex; flex-direction: column; gap: 0; position: relative; padding-left: 2rem; margin: 1.5rem 0; }
+  .flow-step { display: flex; align-items: flex-start; gap: 1rem; position: relative; padding-bottom: 1.5rem; }
+  .flow-step:last-child { padding-bottom: 0; }
+  .flow-step::before { content: ''; position: absolute; left: -1.4rem; top: 2rem; bottom: 0; width: 2px; background: var(--bg3); }
+  .flow-step:last-child::before { display: none; }
+  .flow-dot { width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; position: relative; left: -2.4rem; margin-right: -1.4rem; }
+  .flow-content { flex: 1; }
+  .flow-content h4 { font-size: 1rem; color: #fff; margin-bottom: 0.2rem; }
+  .flow-content p { font-size: 0.85rem; color: var(--mute); }
+
+  /* Signal grid */
+  .signal-category { background: var(--bg2); border: 1px solid var(--bg3); border-radius: 10px; padding: 1.1rem; transition: border-color 0.3s, transform 0.3s; }
+  .signal-category:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .signal-category h4 { font-size: 0.92rem; color: var(--cyan); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
+  .signal-category .signal-icon { font-size: 1.1rem; }
+  .signal-category ul { list-style: none; padding: 0; }
+  .signal-category li { font-size: 0.78rem; color: var(--mute); padding: 0.15rem 0; padding-left: 0.8rem; position: relative; }
+  .signal-category li::before { content: '\2022'; color: var(--bg3); position: absolute; left: 0; }
+  .signal-count { background: var(--bg3); color: var(--cyan); font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 99px; font-weight: 700; }
+
+  /* Correlation signals */
+  .corr-signals { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; margin: 1rem 0; }
+  .corr-signal { background: var(--bg2); border: 1px solid var(--bg3); border-radius: 10px; padding: 1rem; display: flex; align-items: center; gap: 0.8rem; }
+  .corr-icon { width: 2.5rem; height: 2.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .corr-signal h4 { font-size: 0.88rem; color: #fff; }
+  .corr-signal p { font-size: 0.75rem; color: var(--mute); }
+
+  /* Phase timeline */
+  .phase-timeline { display: flex; gap: 0; margin: 1.5rem 0; }
+  .phase { flex: 1; background: var(--bg2); border: 1px solid var(--bg3); padding: 1.4rem; position: relative; }
+  .phase:first-child { border-radius: 12px 0 0 12px; }
+  .phase:last-child { border-radius: 0 12px 12px 0; }
+  .phase.current { border-color: var(--accent); background: rgba(0,212,170,0.05); }
+  .phase-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-bottom: 0.5rem; }
+  .phase h4 { font-size: 1rem; color: #fff; margin-bottom: 0.4rem; }
+  .phase ul { list-style: none; padding: 0; }
+  .phase li { font-size: 0.78rem; color: var(--mute); padding: 0.2rem 0; padding-left: 1rem; position: relative; }
+  .phase li::before { content: '\2713'; color: var(--accent); position: absolute; left: 0; font-size: 0.7rem; }
+  .phase-arrow { position: absolute; right: -0.7rem; top: 50%; transform: translateY(-50%); width: 1.2rem; height: 1.2rem; background: var(--bg2); border-top: 1px solid var(--bg3); border-right: 1px solid var(--bg3); transform: translateY(-50%) rotate(45deg); z-index: 2; }
+  .phase.current .phase-arrow { border-color: var(--accent); background: rgba(0,212,170,0.05); }
+
+  /* Animated trust meter */
+  .trust-meter { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; }
+  .meter-bar { flex: 1; height: 12px; background: var(--bg3); border-radius: 99px; overflow: hidden; position: relative; }
+  .meter-fill { height: 100%; border-radius: 99px; transition: width 1.5s ease; }
+  .meter-label { font-size: 0.82rem; font-weight: 700; min-width: 3rem; text-align: right; }
+
+  /* Pipeline flow */
+  .pipeline { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; padding: 1.2rem 0; }
+  .pipe-stage { background: var(--bg2); border: 1px solid var(--bg3); border-radius: 10px; padding: 0.7rem 1rem; text-align: center; min-width: 110px; }
+  .pipe-stage .name { font-weight: 700; font-size: 0.85rem; }
+  .pipe-stage .detail { font-size: 0.7rem; color: var(--mute); margin-top: 0.15rem; }
+  .pipe-arrow { color: var(--accent); font-size: 1.3rem; padding: 0 0.4rem; }
+  .pipe-stage.active { border-color: var(--accent); }
+  .pipe-stage.active .name { color: var(--accent); }
+
+  /* Entropy health */
+  .health-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+  .health-card { background: var(--bg2); border: 1px solid var(--bg3); border-radius: 10px; padding: 1rem; text-align: center; }
+  .health-card .health-val { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .health-card .health-label { font-size: 0.75rem; color: var(--mute); }
+  .health-card.green .health-val { color: var(--accent); }
+  .health-card.amber .health-val { color: var(--amber); }
+  .health-card.red .health-val { color: var(--coral); }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin: 1rem 0; }
+  .compare-table th { background: var(--bg3); color: var(--accent); padding: 0.6rem 0.8rem; text-align: left; font-weight: 600; }
+  .compare-table td { padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--bg3); }
+  .compare-table tr:hover td { background: rgba(0,212,170,0.04); }
+  .check { color: var(--accent); font-weight: 700; }
+  .cross { color: var(--coral); font-weight: 700; }
+  .partial { color: var(--amber); }
+
+  /* Footer */
+  .footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--bg3); margin-top: 3rem; color: var(--mute); font-size: 0.82rem; }
+
+  /* Password Gate */
+  #gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #gate.hidden { display: none; }
+  #gate .gate-box {
+    background: var(--bg2); border: 1px solid var(--bg3);
+    border-radius: 16px; padding: 2.5rem 2rem; text-align: center;
+    max-width: 380px; width: 90%;
+  }
+  #gate .gate-box h2 { color: #fff; font-size: 1.4rem; margin-bottom: 0.3rem; }
+  #gate .gate-box p { color: var(--mute); font-size: 0.88rem; margin-bottom: 1.4rem; }
+  #gate input {
+    width: 100%; padding: 0.65rem 1rem; border-radius: 8px;
+    border: 1px solid var(--bg3); background: var(--bg);
+    color: var(--text); font-size: 1rem; text-align: center;
+    outline: none; transition: border-color 0.2s;
+  }
+  #gate input:focus { border-color: var(--accent); }
+  #gate input.shake { animation: shake 0.4s ease; border-color: var(--coral); }
+  #gate button {
+    margin-top: 1rem; padding: 0.6rem 2rem; border-radius: 8px;
+    background: var(--accent); color: var(--bg); border: none;
+    font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s;
+  }
+  #gate button:hover { opacity: 0.85; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
+  .content-hidden { display: none !important; }
+
+  /* Scroll animations */
+  .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <h2>Cross-Device Trust Bridging</h2>
+    <p>This document is access-restricted.<br>Enter the password to continue.</p>
+    <input type="password" id="gatePass" placeholder="Password" autocomplete="off">
+    <br>
+    <button id="gateBtn">Enter</button>
+    <div class="badge" style="margin-top:1.5rem;">SOTTO Platform &bull; BL1NQ</div>
+  </div>
+</div>
+
+<div class="container content-hidden" id="mainContent">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Cross-Device <span>Trust Bridging</span></h1>
+    <div class="sub">Extending behavioral authentication from mobile to desktop &mdash; without user friction</div>
+    <div class="badge">SOTTO Platform &bull; BL1NQ &bull; Technical Supplement</div>
+  </div>
+
+  <!-- SECTION 1: THE PROBLEM -->
+  <div class="step fade-in">
+    <div class="step-number">1</div>
+    <h2>Why Cross-Device Matters</h2>
+    <div class="step-sub">The trust gap between mobile and desktop</div>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <h3 style="color:var(--accent);margin-bottom:0.6rem;">&#128241; Mobile: Trust is Strong</h3>
+        <p style="font-size:0.88rem;color:var(--mute);margin-bottom:0.8rem;">The SOTTO SDK continuously collects <span style="color:var(--accent);font-weight:700;">177 of 291</span> behavioral attributes in real-time. Hardware-backed identity via <span style="color:var(--text);font-weight:600;">Secure Enclave</span> and <span style="color:var(--text);font-weight:600;">cap_seed</span> makes spoofing computationally infeasible.</p>
+        <div class="trust-meter">
+          <div class="meter-bar"><div class="meter-fill" style="width:91%;background:linear-gradient(90deg,var(--accent),#00F5C8);" id="mobileMeter"></div></div>
+          <div class="meter-label" style="color:var(--accent);">91%</div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--mute);text-align:center;">Continuous trust confidence</div>
+      </div>
+      <div class="card card-coral">
+        <h3 style="color:var(--coral);margin-bottom:0.6rem;">&#128187; Desktop/Browser: The Gap</h3>
+        <p style="font-size:0.88rem;color:var(--mute);margin-bottom:0.8rem;">No hardware-backed identity. Session tokens are <span style="color:var(--coral);font-weight:600;">stealable</span>. Cookies are <span style="color:var(--coral);font-weight:600;">replayable</span>. Most desktop auth relies on one-time credentials that don&rsquo;t adapt to behavioral change.</p>
+        <div class="trust-meter">
+          <div class="meter-bar"><div class="meter-fill" style="width:23%;background:linear-gradient(90deg,var(--coral),#FF9999);" id="desktopMeter"></div></div>
+          <div class="meter-label" style="color:var(--coral);">23%</div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--mute);text-align:center;">Session-based trust (static)</div>
+      </div>
+    </div>
+
+    <div class="note-box warn" style="margin-top:1rem;">
+      <strong>The current workarounds fall short:</strong> QR codes, SMS OTPs, and push notifications all require <em>active user steps</em>. Each interaction is a friction point that degrades UX and introduces social-engineering attack surface. BL1NQ eliminates these by making trust flow <em>passively</em>.
+    </div>
+
+    <!-- Comparison table -->
+    <div class="card" style="margin-top:1rem;">
+      <h4 style="color:#fff;margin-bottom:0.8rem;">How BL1NQ Compares to Existing Methods</h4>
+      <table class="compare-table">
+        <tr><th>Method</th><th>User Friction</th><th>Continuous</th><th>Phish-Resistant</th><th>Passive</th></tr>
+        <tr><td>QR Code (e.g., WhatsApp Web)</td><td class="partial">Medium</td><td class="cross">&#10007;</td><td class="partial">Partial</td><td class="cross">&#10007;</td></tr>
+        <tr><td>SMS / Email OTP</td><td class="cross" style="color:var(--coral);">High</td><td class="cross">&#10007;</td><td class="cross">&#10007;</td><td class="cross">&#10007;</td></tr>
+        <tr><td>Push Notification</td><td class="partial">Medium</td><td class="cross">&#10007;</td><td class="partial">Partial</td><td class="cross">&#10007;</td></tr>
+        <tr><td>FIDO2 / WebAuthn</td><td class="partial">Low</td><td class="cross">&#10007;</td><td class="check">&#10003;</td><td class="cross">&#10007;</td></tr>
+        <tr style="background:rgba(0,212,170,0.06);"><td style="color:var(--accent);font-weight:700;">BL1NQ Passive Bridging</td><td class="check">Zero</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 2: HOW PASSIVE BRIDGING WORKS -->
+  <div class="step fade-in">
+    <div class="step-number">2</div>
+    <h2>How Passive Bridging Works</h2>
+    <div class="step-sub">Trust flows from phone to browser &mdash; automatically</div>
+
+    <!-- Bridge diagram -->
+    <div class="card" style="padding:1.5rem;">
+      <div class="bridge-diagram">
+        <div class="bridge-node mobile">
+          <h3 style="color:var(--accent);">&#128241; Mobile</h3>
+          <div class="node-stats">
+            <span>177/291</span> attributes<br>
+            Secure Enclave<br>
+            cap_seed<br>
+            <span style="color:var(--accent);">Key 1a</span>
+          </div>
+        </div>
+        <div class="bridge-arrow">&#10230;</div>
+        <div class="bridge-node correlation">
+          <h3 style="color:var(--amber);">&#127760; Environmental Correlation</h3>
+          <div class="node-stats" style="font-size:0.74rem;">
+            WiFi BSSID<br>
+            IP Subnet<br>
+            Bluetooth Beacons<br>
+            Barometric Pressure
+          </div>
+        </div>
+        <div class="bridge-arrow">&#10230;</div>
+        <div class="bridge-node browser">
+          <h3 style="color:var(--cyan);">&#128187; Browser</h3>
+          <div class="node-stats">
+            <span>120</span> web signals<br>
+            Keystroke &amp; Mouse<br>
+            Canvas / WebGL<br>
+            <span style="color:var(--cyan);">Key 1b</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5-step flow -->
+    <div class="card" style="margin-top:1.2rem;">
+      <h4 style="color:#fff;margin-bottom:1rem;">The 5-Step Flow</h4>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-dot" style="background:var(--accent);color:var(--bg);">1</div>
+          <div class="flow-content">
+            <h4>Phone Authenticated</h4>
+            <p>Continuous 177/291 attribute collection is already running. The device has a hardware-backed trust score maintained by the SOTTO SDK.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot" style="background:var(--cyan);color:var(--bg);">2</div>
+          <div class="flow-content">
+            <h4>Browser Session Detected</h4>
+            <p>The BL1NQ browser SDK initializes and begins collecting 120 behavioral signals &mdash; keystroke dynamics, mouse curves, canvas fingerprints, and more.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot" style="background:var(--amber);color:var(--bg);">3</div>
+          <div class="flow-content">
+            <h4>Environmental Correlation</h4>
+            <p>Fuzzy matching across shared environmental signals: same WiFi BSSID, IP subnet, Bluetooth beacon proximity, and barometric pressure readings within threshold.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot" style="background:var(--accent2);color:#fff;">4</div>
+          <div class="flow-content">
+            <h4>Trust Inheritance</h4>
+            <p>When correlation exceeds the confidence threshold, the mobile trust score propagates to the browser session. No user interaction required.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot" style="background:var(--gold);color:var(--bg);">5</div>
+          <div class="flow-content">
+            <h4>Continuous Dual Monitoring</h4>
+            <p>Both behavioral gates run in parallel. An anomaly on <em>either</em> device triggers escalation &mdash; step-up authentication, session restriction, or lockout.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box info">
+      <strong>Zero-friction handoff:</strong> The user simply opens their browser. If their authenticated phone is nearby and environmental signals correlate, trust is inherited automatically. No QR scan, no OTP, no push approval.
+    </div>
+  </div>
+
+  <!-- SECTION 3: BROWSER SDK SIGNALS -->
+  <div class="step fade-in">
+    <div class="step-number">3</div>
+    <h2>Browser Behavioral SDK</h2>
+    <div class="step-sub">120 web-native signals across 6 behavioral categories</div>
+
+    <div class="grid-3" style="margin-bottom:1rem;">
+      <div class="stat">
+        <div class="val" style="color:var(--cyan);">120</div>
+        <div class="label">Web signals collected</div>
+      </div>
+      <div class="stat purple">
+        <div class="val">6</div>
+        <div class="label">Signal categories</div>
+      </div>
+      <div class="stat amber">
+        <div class="val">&lt;50ms</div>
+        <div class="label">Collection latency</div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="signal-category">
+        <h4><span class="signal-icon">&#9000;</span> Keystroke Dynamics <span class="signal-count">22</span></h4>
+        <ul>
+          <li>Key-down/up timing intervals</li>
+          <li>Digraph &amp; trigraph latencies</li>
+          <li>Flight time distributions</li>
+          <li>Pressure/duration patterns</li>
+          <li>Error rate &amp; correction rhythm</li>
+        </ul>
+      </div>
+      <div class="signal-category">
+        <h4><span class="signal-icon">&#128433;</span> Mouse / Trackpad <span class="signal-count">28</span></h4>
+        <ul>
+          <li>Movement velocity curves</li>
+          <li>Click pressure &amp; duration</li>
+          <li>Scroll acceleration patterns</li>
+          <li>Cursor path curvature</li>
+          <li>Hover-to-click latency</li>
+        </ul>
+      </div>
+      <div class="signal-category">
+        <h4><span class="signal-icon">&#127912;</span> Canvas / WebGL <span class="signal-count">18</span></h4>
+        <ul>
+          <li>GPU rendering signature</li>
+          <li>Canvas hash fingerprint</li>
+          <li>WebGL vendor/renderer</li>
+          <li>Font rendering variance</li>
+          <li>Anti-aliasing behavior</li>
+        </ul>
+      </div>
+      <div class="signal-category">
+        <h4><span class="signal-icon">&#127760;</span> Network <span class="signal-count">16</span></h4>
+        <ul>
+          <li>Connection type &amp; downlink</li>
+          <li>RTT latency patterns</li>
+          <li>DNS resolution timing</li>
+          <li>Protocol negotiation order</li>
+          <li>WebSocket behavior</li>
+        </ul>
+      </div>
+      <div class="signal-category">
+        <h4><span class="signal-icon">&#128300;</span> Browser Environment <span class="signal-count">20</span></h4>
+        <ul>
+          <li>Timezone &amp; locale chain</li>
+          <li>Language preferences</li>
+          <li>Installed plugin set</li>
+          <li>Screen resolution &amp; DPR</li>
+          <li>Feature flag detection</li>
+        </ul>
+      </div>
+      <div class="signal-category">
+        <h4><span class="signal-icon">&#128101;</span> Behavioral Patterns <span class="signal-count">16</span></h4>
+        <ul>
+          <li>Navigation flow sequences</li>
+          <li>Tab switching cadence</li>
+          <li>Interaction timing rhythm</li>
+          <li>Session duration patterns</li>
+          <li>Focus/blur event timing</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note-box" style="margin-top:1rem;">
+      <strong>Privacy by design:</strong> All signals are processed on-device into a behavioral hash. Raw behavioral data never leaves the browser. The SDK ships as a lightweight JS bundle (&lt;30KB gzipped) with zero external dependencies.
+    </div>
+  </div>
+
+  <!-- SECTION 4: ENVIRONMENTAL CORRELATION -->
+  <div class="step fade-in">
+    <div class="step-number">4</div>
+    <h2>Environmental Correlation Engine</h2>
+    <div class="step-sub">Fuzzy matching proves the phone and browser share the same physical space</div>
+
+    <div class="corr-signals">
+      <div class="corr-signal">
+        <div class="corr-icon" style="background:rgba(0,212,170,0.15);color:var(--accent);">&#128246;</div>
+        <div>
+          <h4>WiFi BSSID Match</h4>
+          <p>Both devices see the same access point MAC addresses and signal strengths</p>
+        </div>
+      </div>
+      <div class="corr-signal">
+        <div class="corr-icon" style="background:rgba(34,211,238,0.15);color:var(--cyan);">&#127760;</div>
+        <div>
+          <h4>IP Subnet Correlation</h4>
+          <p>Shared /24 subnet confirms same network, with NAT traversal awareness</p>
+        </div>
+      </div>
+      <div class="corr-signal">
+        <div class="corr-icon" style="background:rgba(108,99,255,0.15);color:var(--accent2);">&#128225;</div>
+        <div>
+          <h4>Bluetooth Beacon Proximity</h4>
+          <p>BLE beacon detection confirms physical proximity within meters</p>
+        </div>
+      </div>
+      <div class="corr-signal">
+        <div class="corr-icon" style="background:rgba(255,179,71,0.15);color:var(--amber);">&#127777;</div>
+        <div>
+          <h4>Barometric Pressure</h4>
+          <p>Atmospheric pressure readings within threshold confirm same floor/altitude</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem;">
+      <h4 style="color:#fff;margin-bottom:0.8rem;">Correlation Confidence Pipeline</h4>
+      <div class="pipeline">
+        <div class="pipe-stage active"><div class="name" style="color:var(--accent);">Collect</div><div class="detail">Environmental signals from both devices</div></div>
+        <div class="pipe-arrow">&#10132;</div>
+        <div class="pipe-stage"><div class="name">Fuzzy Match</div><div class="detail">Weighted similarity scoring</div></div>
+        <div class="pipe-arrow">&#10132;</div>
+        <div class="pipe-stage"><div class="name">Threshold</div><div class="detail">Confidence &ge; 0.85 required</div></div>
+        <div class="pipe-arrow">&#10132;</div>
+        <div class="pipe-stage active"><div class="name" style="color:var(--accent);">Bridge</div><div class="detail">Trust inheritance triggered</div></div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <strong>Multi-signal resilience:</strong> No single signal is required. If WiFi is unavailable, Bluetooth + IP + barometric pressure can still establish correlation. The engine adapts to whatever environmental context is available.
+    </div>
+  </div>
+
+  <!-- SECTION 5: ENTROPY HEALTH & HARDWARE RNG -->
+  <div class="step fade-in">
+    <div class="step-number">5</div>
+    <h2>Hardware RNG &amp; Entropy Health</h2>
+    <div class="step-sub">Cryptographic integrity starts with provably random key material</div>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <h4 style="color:var(--accent);margin-bottom:0.6rem;">Hardware Random Number Generation</h4>
+        <p style="font-size:0.85rem;color:var(--mute);">Every key pair (Key 1a on mobile, Key 1b on browser) is generated using hardware-backed entropy sources:</p>
+        <ul style="list-style:none;padding:0;margin-top:0.8rem;">
+          <li style="font-size:0.82rem;color:var(--text);padding:0.3rem 0;border-bottom:1px solid var(--bg3);">&#128272; Secure Enclave TRNG (mobile)</li>
+          <li style="font-size:0.82rem;color:var(--text);padding:0.3rem 0;border-bottom:1px solid var(--bg3);">&#128272; Web Crypto API + OS entropy pool (browser)</li>
+          <li style="font-size:0.82rem;color:var(--text);padding:0.3rem 0;border-bottom:1px solid var(--bg3);">&#128272; NIST SP 800-90B compliant health tests</li>
+          <li style="font-size:0.82rem;color:var(--text);padding:0.3rem 0;">&#128272; Continuous entropy monitoring &amp; reseeding</li>
+        </ul>
+      </div>
+      <div class="card card-purple">
+        <h4 style="color:var(--accent2);margin-bottom:0.6rem;">Entropy Health Attestation</h4>
+        <p style="font-size:0.85rem;color:var(--mute);margin-bottom:0.8rem;">The SDK continuously monitors entropy source quality and provides real-time health attestation:</p>
+        <div class="health-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="health-card green">
+            <div class="health-val">&#9679; Healthy</div>
+            <div class="health-label">TRNG output passing all NIST tests</div>
+          </div>
+          <div class="health-card amber">
+            <div class="health-val">&#9679; Degraded</div>
+            <div class="health-label">Fallback to software CSPRNG</div>
+          </div>
+        </div>
+        <p style="font-size:0.78rem;color:var(--mute);margin-top:0.6rem;">If entropy health drops below threshold, the SDK triggers re-keying and alerts the trust engine. Degraded entropy never silently propagates to key material.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem;">
+      <h4 style="color:#fff;margin-bottom:0.8rem;">Key Hierarchy</h4>
+      <div class="pipeline">
+        <div class="pipe-stage active"><div class="name" style="color:var(--accent);">TRNG</div><div class="detail">Hardware entropy source</div></div>
+        <div class="pipe-arrow">&#10132;</div>
+        <div class="pipe-stage"><div class="name">cap_seed</div><div class="detail">Device-bound master seed</div></div>
+        <div class="pipe-arrow">&#10132;</div>
+        <div class="pipe-stage"><div class="name">Key 1a / 1b</div><div class="detail">Session key pair</div></div>
+        <div class="pipe-arrow">&#10132;</div>
+        <div class="pipe-stage active"><div class="name" style="color:var(--accent);">Bridge Token</div><div class="detail">Ephemeral trust credential</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: ROADMAP -->
+  <div class="step fade-in">
+    <div class="step-number">6</div>
+    <h2>Three-Phase Evolution</h2>
+    <div class="step-sub">From mobile SDK to full cross-device trust platform</div>
+
+    <div class="phase-timeline">
+      <div class="phase current">
+        <div class="phase-label" style="color:var(--accent);">Phase 1 &mdash; Now</div>
+        <h4>Mobile SDK</h4>
+        <ul>
+          <li>177/291 behavioral attributes</li>
+          <li>Secure Enclave integration</li>
+          <li>Continuous trust scoring</li>
+          <li>cap_seed key derivation</li>
+          <li>On-device ML inference</li>
+        </ul>
+        <div class="phase-arrow"></div>
+      </div>
+      <div class="phase">
+        <div class="phase-label" style="color:var(--cyan);">Phase 2 &mdash; Next</div>
+        <h4>Browser SDK + Bridging</h4>
+        <ul>
+          <li>120 browser behavioral signals</li>
+          <li>Environmental correlation engine</li>
+          <li>Passive trust inheritance</li>
+          <li>Dual-device monitoring</li>
+          <li>Anomaly-triggered escalation</li>
+        </ul>
+        <div class="phase-arrow"></div>
+      </div>
+      <div class="phase">
+        <div class="phase-label" style="color:var(--accent2);">Phase 3 &mdash; Platform</div>
+        <h4>Full Trust Mesh</h4>
+        <ul>
+          <li>N-device trust graph</li>
+          <li>IoT &amp; embedded endpoints</li>
+          <li>Enterprise identity federation</li>
+          <li>Zero-trust network integration</li>
+          <li>Behavioral analytics dashboard</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top:1.2rem;">
+      <div class="card card-accent" style="text-align:center;">
+        <div style="font-size:2rem;font-weight:800;color:var(--accent);">291</div>
+        <div style="font-size:0.82rem;color:var(--mute);">Total attribute capacity</div>
+        <div style="font-size:0.72rem;color:var(--accent);margin-top:0.3rem;">Mobile: 177 today &rarr; 291 at capacity</div>
+      </div>
+      <div class="card card-cyan" style="text-align:center;">
+        <div style="font-size:2rem;font-weight:800;color:var(--cyan);">120</div>
+        <div style="font-size:0.82rem;color:var(--mute);">Browser signals</div>
+        <div style="font-size:0.72rem;color:var(--cyan);margin-top:0.3rem;">Phase 2 cross-device capability</div>
+      </div>
+      <div class="card card-purple" style="text-align:center;">
+        <div style="font-size:2rem;font-weight:800;color:var(--accent2);">N</div>
+        <div style="font-size:0.82rem;color:var(--mute);">Device trust mesh</div>
+        <div style="font-size:0.72rem;color:var(--accent2);margin-top:0.3rem;">Phase 3 unlimited endpoints</div>
+      </div>
+    </div>
+
+    <div class="note-box info" style="margin-top:1rem;">
+      <strong>Platform vision:</strong> Phase 3 transforms BL1NQ from a point solution into a full behavioral trust mesh. Every device a user touches becomes a node in their identity graph &mdash; each one strengthening the others through continuous cross-correlation. This is the moat that moves beyond SDK licensing into platform-level market capture.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="badge" style="margin-bottom:0.8rem;">SOTTO Platform &bull; BL1NQ</div>
+    <div>Cross-Device Trust Bridging &mdash; Technical Supplement</div>
+    <div style="margin-top:0.3rem;">Confidential &bull; For authorized recipients only</div>
+    <div style="margin-top:0.8rem;"><a href="index.html" style="color:var(--accent);text-decoration:none;">&#8592; Multilink H<sub>B</sub> Entropy Explainer</a></div>
+  </div>
+
+</div>
+
+<!-- PASSWORD GATE SCRIPT -->
+<script>
+(function() {
+  var HASH = "41c40b87fc18e5028654c90bed95d38324ef511d21840aaff434ceac7bf0d53d";
+  var gate = document.getElementById("gate");
+  var inp = document.getElementById("gatePass");
+  var btn = document.getElementById("gateBtn");
+  var main = document.getElementById("mainContent");
+
+  function unlock() {
+    gate.classList.add("hidden");
+    main.classList.remove("content-hidden");
+    sessionStorage.setItem("cd_auth", "1");
+    initAnimations();
+  }
+
+  if (sessionStorage.getItem("cd_auth") === "1") { unlock(); }
+
+  async function check() {
+    var val = inp.value;
+    var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(val));
+    var hex = Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,"0"); }).join("");
+    if (hex === HASH) { unlock(); }
+    else { inp.classList.add("shake"); setTimeout(function(){ inp.classList.remove("shake"); }, 500); }
+  }
+
+  btn.addEventListener("click", check);
+  inp.addEventListener("keydown", function(e) { if (e.key === "Enter") check(); });
+
+  function initAnimations() {
+    // Scroll-triggered fade-in
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll(".fade-in").forEach(function(el) {
+      observer.observe(el);
+    });
+
+    // Animate trust meters
+    setTimeout(function() {
+      var m = document.getElementById("mobileMeter");
+      var d = document.getElementById("desktopMeter");
+      if (m) { m.style.width = "0%"; setTimeout(function(){ m.style.transition = "width 2s ease"; m.style.width = "91%"; }, 100); }
+      if (d) { d.style.width = "0%"; setTimeout(function(){ d.style.transition = "width 2s ease"; d.style.width = "23%"; }, 100); }
+    }, 300);
+  }
+})();
+</script>
+
+</body>
+</html>
